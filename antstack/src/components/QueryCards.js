@@ -1,5 +1,5 @@
 import React from 'react';
-import {Card, Button, Row, Col, Form, Badge, Container, Toast} from 'react-bootstrap';
+import {Card, Button, Row, Col, Form, Container} from 'react-bootstrap';
 
 import axios from 'axios';
 
@@ -11,19 +11,43 @@ class QueryCards extends React.Component {
             isLoading1 : false,
             isLoading2 : false,
             url        : "",
+            url2       : "",
             meta       : "",
+            dns        : ""
         };
     }
     findMetaTag = async () => {
-        if(this.state.url.trim()!="" && this.state.meta.trim()!=""){
+        if(this.state.url.trim()!=="" && this.state.meta.trim()!==""){
+            if(! this.validURL(this.state.url)){
+                this.setState({response: "Please provide a valid url as input"});
+                return;
+            }
             let response = "";
             this.setState({isLoading1: true, response: "..."});
             await axios.post('/apis/findMeta', {url: this.state.url, meta: this.state.meta}).then( (res)=>{
                 response = res.data.message;
                 console.log(response);
-                console.log(res);
             });
             this.setState({isLoading1: false, response: response });
+        }
+        else{
+            this.setState({response: "Please provide both the inputs before querying"})
+        }
+    }
+
+    findDNS = async () => {
+        if(this.state.url2.trim()!=="" && this.state.dns.trim()!==""){
+            if(! this.validURL(this.state.url2)){
+                this.setState({response: "Please provide a valid url as input"});
+                return;
+            }
+            let response = "";
+            this.setState({isLoading2: true, response: "..."});
+            await axios.post('/apis/findDNS', {url: this.state.url2, dns: this.state.dns}).then( (res)=>{
+                response = res.data.message;
+                console.log(response);
+            });
+            this.setState({isLoading2: false, response: response });
         }
         else{
             this.setState({response: "Please provide both the inputs before querying"})
@@ -41,19 +65,14 @@ class QueryCards extends React.Component {
      }
 
     handleInputChange = (event) => {
-        if(event.target.name=="url"){
+        if(event.target.name==="url" || event.target.name==="url2"){
             if(!(this.validURL(event.target.value))){
-                this.setState({response: "Please provide a valid url as input", url: ""});
-                return;
+                this.setState({response: "Please provide a valid url as input"});
             }
         }
         this.setState({[event.target.name]: event.target.value});
     }
     render () {
-
-        const findDNSTxt = () => {
-
-        }
         return (
                 <Container fluid>
                     <Row className="m-5">
@@ -82,20 +101,20 @@ class QueryCards extends React.Component {
                                         <Form>
                                             <Form.Group controlId="formGroupURL">
                                                 <Form.Label>URL</Form.Label>
-                                                <Form.Control type="url" placeholder="Enter the url for lookup" />
+                                                <Form.Control as='input' name="url2" type="url"  onChange={this.handleInputChange} placeholder="Enter the url for lookup" />
                                             </Form.Group>
                                             <Form.Group controlId="formGroupDNS">
                                                 <Form.Label>DNS Txt Record</Form.Label>
-                                                <Form.Control type="text" placeholder="Enter the dns txt record you want to search for" />
+                                                <Form.Control as='input' name="dns" type="text"  onChange={this.handleInputChange} placeholder="Enter the dns txt record you want to search for" />
                                             </Form.Group>
                                         </Form>
-                                    <Button variant="primary" disabled={this.state.isLoading2}  onClick={!this.state.isLoading2 ? findDNSTxt : null}>{ this.state.isLoading2 ? 'Processing...': 'Find Response'}</Button>
+                                    <Button variant="primary" disabled={this.state.isLoading2}  onClick={!this.state.isLoading2 ? this.findDNS : null}>{ this.state.isLoading2 ? 'Processing...': 'Find Response'}</Button>
                                 </Card.Body>
                             </Card>
                         </Col>
                     </Row>
                     <center>
-                    <Card style={{width: '30rem'}} className="bg-success p-2">
+                    <Card style={{width: '30rem'}} className="bg-success p-2 mb-4">
                         <Card.Text className="h5">
                             {this.state.response}
                         </Card.Text>
