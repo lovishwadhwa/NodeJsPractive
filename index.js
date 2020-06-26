@@ -18,6 +18,6 @@ app.use(express.static(path.join(__dirname, "/antstack", "build")));
 app.use('/apis', apis);
 
 
-app.listen(8000, () => {
+app.listen((process.env.PORT||5000)), () => {
   console.log('Example app listening on port 8000!')
 });
